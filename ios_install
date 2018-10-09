@@ -1,13 +1,19 @@
 #!/bin/bash
-location=$(dirname "$0")
-source $location/common_tools
-ios_check_developer_image
+LOCATION=$(dirname "$0")
+source $LOCATION/common_tools
 
 if [ -z "$1" ] ; then
   echo "🤷‍ What should I install?"
   exit
 fi
 
-echo "⌛️ Installing..."
-ideviceinstaller -i "$1" &> /dev/null
+echo "🔍 Detecting bundle id..."
+unzip "$PWD/$1" &> /dev/null
+APP_FILENAME=$(ls $PWD/Payload)
+BUNDLE_ID=$(grep "$PWD/Payload/$APP_FILENAME/embedded.mobileprovision" -a -e "[.]com[.]" | sed 's/.[^.]*\.//' | sed 's/\<.*$//')
+rm -rf "$PWD/Payload"
+echo "⌛️ Installing $BUNDLE_ID"
+ideviceinstaller -i "$1" &> /dev/null #make silent
+echo "🚀 Launching..."
+idevicedebug run $BUNDLE_ID
 echo "✅ Done!"
